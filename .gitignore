@@ -1,0 +1,5 @@
+.claude
+.vscode
+.tmp_test
+
+__pycache__

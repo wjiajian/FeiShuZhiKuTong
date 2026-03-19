@@ -1,0 +1,89 @@
+# 查询导出任务结果
+
+根据[创建导出任务](https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/drive-v1/export_task/create)返回的导出任务 ID（ticket）轮询导出任务结果，并返回导出文件的 token。你可使用该 token 继续调用[下载导出文件](https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/drive-v1/export_task/download)接口将导出的产物下载到本地。了解完整的导出文件步骤，参考[导出飞书云文档概述](https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/drive-v1/export_task/export-user-guide)。
+
+## 注意事项
+
+调用该接口的用户或应用需与调用创建导出任务接口的用户或应用保持一致。
+
+## 请求
+
+基本 | &nbsp;
+---|---
+HTTP URL | https://open.feishu.cn/open-apis/drive/v1/export_tasks/:ticket
+HTTP Method | GET
+接口频率限制 | [100 次/分钟](https://open.feishu.cn/document/ukTMukTMukTM/uUzN04SN3QjL1cDN)
+支持的应用类型 | Custom App
+权限要求<br>**调用该 API 所需的权限。开启其中任意一项权限即可调用**<br>开启任一权限即可 | 导出云文档(docs:document:export)<br>导出云文档(drive:export:readonly)
+
+### 请求头
+
+名称 | 类型 | 必填 | 描述
+---|---|---|---
+Authorization | string | 是 | `tenant_access_token`<br>或<br>`user_access_token`<br>**值格式**："Bearer `access_token`"<br>**示例值**："Bearer u-7f1bcd13fc57d46bac21793a18e560"<br>[了解更多：如何选择与获取 access token](https://open.feishu.cn/document/uAjLw4CM/ugTN1YjL4UTN24CO1UjN/trouble-shooting/how-to-choose-which-type-of-token-to-use)
+
+### 路径参数
+
+名称 | 类型 | 描述
+---|---|---
+ticket | string | 导出任务 ID。调用[创建导出任务](https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/drive-v1/export_task/create) 获取。<br>**示例值**："6933093124755412345"
+
+### 查询参数
+
+名称 | 类型 | 必填 | 描述
+---|---|---|---
+token | string | 是 | 要导出的云文档的 token。获取方式参考[如何获取云文档相关 token](https://open.feishu.cn/document/ukTMukTMukTM/uczNzUjL3czM14yN3MTN#08bb5df6)。你可参考以下请求示例了解如何使用查询参数。<br>**示例值**：docbcZVGtv1papC6jAVGiyabcef<br>**数据校验规则**：<br>- 最大长度：`27` 字符
+
+### 请求示例
+```bash
+curl --location --request GET 'https://open.feishu.cn/open-apis/drive/v1/export_tasks/7143131813848809492?token=docbcZVGtv1papC6jAVGiyabcef' \
+--header 'Authorization: Bearer t-g1029efgIY34MWD1L4CEYQOVN5TZF2OMPJXTDVOP'
+```
+
+## 响应
+
+### 响应体
+
+名称 | 类型 | 描述
+---|---|---
+code | int | 错误码，非 0 表示失败
+msg | string | 错误描述
+data | \- | \-
+result | export_task | 导出任务结果
+file_extension | string | 导出的文件的扩展名<br>**可选值有**：<br>- docx：Microsoft Word 格式<br>- pdf：PDF 格式<br>- xlsx：Microsoft Excel (XLSX) 格式<br>- csv：CSV 格式
+type | string | 要导出的云文档的类型。可通过云文档的链接判断。<br>**可选值有**：<br>- doc：旧版飞书文档。支持导出扩展名为 docx 和 pdf 的文件。已不推荐使用。<br>- sheet：飞书电子表格。支持导出扩展名为 xlsx 和 csv 的文件<br>- bitable：飞书多维表格。支持导出扩展名为 xlsx 和 csv 格式的文件<br>- docx：新版飞书文档。支持导出扩展名为 docx 和 pdf 格式的文件
+file_name | string | 导出的文件名称
+file_token | string | 导出的文件的 token。可用于调用[下载导出文件](https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/drive-v1/export_task/download)接口将导出的产物下载到本地。
+file_size | int | 导出文件的大小，单位字节。
+job_error_msg | string | 导出任务失败的原因
+job_status | int | 导出任务状态<br>**可选值有**：<br>- 0：成功<br>- 1：初始化<br>- 2：处理中<br>- 3：内部错误<br>- 107：导出文档过大<br>- 108：处理超时<br>- 109：导出内容块无权限<br>- 110：无权限<br>- 111：导出文档已删除<br>- 122：创建副本中禁止导出<br>- 123：导出文档不存在<br>- 6000：导出文档图片过多
+
+### 响应体示例
+```json
+{
+    "code": 0,
+    "msg": "success",
+    "data": {
+        "result": {
+            "file_extension": "pdf",
+            "type": "doc",
+            "file_name": "docName",
+            "file_token": "boxcnxe5OdjlAkNgSNdsJvabcef",
+            "file_size": 34356,
+            "job_error_msg": "success",
+            "job_status": 0
+        }
+    }
+}
+```
+
+### 错误码
+
+HTTP状态码 | 错误码 | 描述 | 排查建议
+---|---|---|---
+500 | 1069901 | internal error | 服务内部错误，请联系[技术支持](https://open.feishu.cn/document/ukTMukTMukTM/uUDN04SN0QjL1QDN/docs-overview#51f94b41)
+403 | 1069902 | no permission | 当前访问身份没有文档阅读或编辑权限。请参考以下方式解决：<br>- 如果你使用的是 `tenant_access_token`，意味着当前应用没有文档阅读或编辑权限。你需通过云文档网页页面右上方 **「...」** -> **「...更多」** ->**「添加文档应用」** 入口为应用添加文档权限。<br>- 如果你使用的是 `user_access_token`，意味着当前用户没有文档阅读或编辑权限。你需通过云文档网页页面右上方 **分享** 入口为当前用户添加文档权限。<br>了解具体操作步骤或其它添加权限方式，参考[云文档常见问题 3](https://open.feishu.cn/document/ukTMukTMukTM/uczNzUjL3czM14yN3MTN#16c6475a)。
+400 | 1069904 | invalid param | 无效参数，导出 csv 是否传入 sub_id
+410 | 1069906 | docs deleted | 文档已被删除
+
+其他错误码可参考：[服务端错误码说明](https://open.feishu.cn/document/ukTMukTMukTM/ugjM14COyUjL4ITN)
